@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-12">
+    {% if reminder %}
+      <div class="alert alert-warning">{{ reminder }}</div>
+    {% endif %}
+  </div>
+
+  <div class="col-md-4">
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h2 class="h5">Today's Score</h2>
+
+      {% if score_today %}
+        <div class="display-4">{{ score_today.overall_score }}</div>
+        <hr/>
+
+        <h3 class="h6">Recommendations</h3>
+
+        {% for msg in score_today.advice %}
+          {% if "Top focus today:" in msg %}
+            <div class="alert alert-info mb-2">{{ msg }}</div>
+
+          {% elif msg|slice:":6" == "Water " %}
+            <h4 class="h6 mt-3 mb-1">Water</h4>
+            <p class="mb-1">{{ msg }}</p>
+
+          {% elif msg|slice:":6" == "Sleep " %}
+            <h4 class="h6 mt-3 mb-1">Sleep</h4>
+            <p class="mb-1">{{ msg }}</p>
+
+          {% elif msg|slice:":9" == "Exercise " %}
+            <h4 class="h6 mt-3 mb-1">Exercise</h4>
+            <p class="mb-1">{{ msg }}</p>
+
+          {% elif msg|slice:":9" == "Calories " %}
+            <h4 class="h6 mt-3 mb-1">Calories</h4>
+            <p class="mb-1">{{ msg }}</p>
+
+          {% else %}
+            {% if msg|slice:":4" == "Tip:" %}
+              <p class="mb-1"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
+            {% else %}
+              <p class="mb-1">{{ msg }}</p>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+      {% else %}
+        <p class="text-muted">No score yet. Log today’s metrics to generate one.</p>
+        <a class="btn btn-success" href="/log/">Log today</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h2 class="h5">Last 7 Days (click a point)</h2>
+      <canvas id="scoreChart"></canvas>
+      <p class="text-muted mt-2 mb-0">Tip: click a point on the line to view that day’s score and advice.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = {{ chart_labels|safe }};
+  const values = {{ chart_values|safe }};
+  const dates = {{ chart_dates|safe }};
+
+  new Chart(document.getElementById('scoreChart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{ label: 'Overall score', data: values }]
+    },
+    options: {
+      responsive: true,
+      onClick: (e, elements) => {
+        if (elements.length > 0) {
+          const index = elements[0].index;
+          const date = dates[index];
+          window.location.href = `/day/${date}/`;
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

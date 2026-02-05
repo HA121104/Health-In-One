@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white p-4 rounded shadow-sm">
+  <h2 class="h5">Score for {{ chosen_date }}</h2>
+
+  {% if score %}
+    <div class="display-4 mb-3">{{ score.overall_score }}</div>
+
+    <h3 class="h6">Recommendations</h3>
+
+    {% for msg in score.advice %}
+      {% if "Top focus today:" in msg %}
+        <div class="alert alert-info mb-2">{{ msg }}</div>
+
+      {% elif msg|slice:":6" == "Water " %}
+        <h4 class="h6 mt-3 mb-1">Water</h4>
+        <p class="mb-1">{{ msg }}</p>
+
+      {% elif msg|slice:":6" == "Sleep " %}
+        <h4 class="h6 mt-3 mb-1">Sleep</h4>
+        <p class="mb-1">{{ msg }}</p>
+
+      {% elif msg|slice:":9" == "Exercise " %}
+        <h4 class="h6 mt-3 mb-1">Exercise</h4>
+        <p class="mb-1">{{ msg }}</p>
+
+      {% elif msg|slice:":9" == "Calories " %}
+        <h4 class="h6 mt-3 mb-1">Calories</h4>
+        <p class="mb-1">{{ msg }}</p>
+
+      {% else %}
+        {% if msg|slice:":4" == "Tip:" %}
+          <p class="mb-1"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
+        {% else %}
+          <p class="mb-1">{{ msg }}</p>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+  {% else %}
+    <p class="text-muted">No saved score for this day.</p>
+  {% endif %}
+
+  <a href="/dashboard/" class="btn btn-secondary mt-3">Back to dashboard</a>
+</div>
+{% endblock %}
