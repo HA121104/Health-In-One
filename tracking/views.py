@@ -11,8 +11,7 @@ from .models import Profile, DailyHealthEntry, DailyScore
 
 def home(request):
     """
-    Simple landing page.
-    I redirect logged-in users straight to the dashboard to save clicks.
+    I redirect logged-in users to the dashboard so the app feels quicker to use.
     """
     if request.user.is_authenticated:
         return redirect("dashboard")
@@ -21,8 +20,7 @@ def home(request):
 
 def signup(request):
     """
-    Basic signup page.
-    I create the user and log them in immediately so they can start using the app.
+    I use Django's built-in signup form because it handles secure user creation.
     """
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -40,8 +38,8 @@ def signup(request):
 @login_required
 def profile_edit(request):
     """
-    Profile editing page (weight + activity level).
-    I keep it minimal for interim MVP but it still enables personalised scoring.
+    I allow the user to update profile data because the final ML model needs
+    user context such as age, height, weight, activity level and health goal.
     """
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
@@ -59,37 +57,42 @@ def profile_edit(request):
 @login_required
 def log_today(request):
     """
-    Daily entry form.
-
-    For demo/testing I allow choosing the date in the form,
-    but the dashboard 'today' score will always show the real current date.
+    I allow date selection for development/testing so I can quickly generate
+    multiple days of history. In the final deployed version this can be locked
+    to today's date if needed.
     """
     today = timezone.localdate()
 
-    # I pre-fill today's entry if it exists so the user can update it quickly.
-    entry = DailyHealthEntry.objects.filter(user=request.user, date=today).first()
-
     if request.method == "POST":
-        # I allow posting with any date for demo/testing.
         form = DailyHealthEntryForm(request.POST)
         if form.is_valid():
             saved = form.save(commit=False)
             saved.user = request.user
 
-            # I enforce update-or-create for the selected date to avoid duplicates.
-            existing = DailyHealthEntry.objects.filter(user=request.user, date=saved.date).first()
+            existing = DailyHealthEntry.objects.filter(
+                user=request.user,
+                date=saved.date
+            ).first()
+
             if existing:
+                # I update every metric so re-saving a past day correctly refreshes the score/advice.
                 existing.calories_kcal = saved.calories_kcal
                 existing.water_ml = saved.water_ml
                 existing.sleep_hours = saved.sleep_hours
                 existing.exercise_minutes = saved.exercise_minutes
-                existing.save()  # triggers signals -> DailyScore update_or_create
+                existing.steps = saved.steps
+                existing.screen_time_hours = saved.screen_time_hours
+                existing.stress_level = saved.stress_level
+                existing.mood_level = saved.mood_level
+                existing.energy_level = saved.energy_level
+                existing.fruit_veg_servings = saved.fruit_veg_servings
+                existing.protein_grams = saved.protein_grams
+                existing.save()
             else:
-                saved.save()  # triggers signals -> DailyScore update_or_create
+                saved.save()
 
             return redirect("dashboard")
     else:
-        # Default the date picker to today for normal use.
         form = DailyHealthEntryForm(initial={"date": today})
 
     return render(request, "log_today.html", {"form": form})
@@ -98,10 +101,7 @@ def log_today(request):
 @login_required
 def dashboard(request):
     """
-    Dashboard page:
-    - shows today's overall score + advice
-    - shows last 7 days chart
-    - allows clicking a day on the chart to view that day's advice
+    The dashboard shows today's score, recommendations and historical chart data.
     """
     today = timezone.localdate()
 
@@ -114,7 +114,6 @@ def dashboard(request):
     chart_values = [s.overall_score for s in last_7]
     chart_dates = [s.date.strftime("%Y-%m-%d") for s in last_7]
 
-    # I treat "logged today" as having either an entry OR a score for today's date.
     has_entry_today = DailyHealthEntry.objects.filter(user=request.user, date=today).exists()
     has_score_today = score_today is not None
 
@@ -138,8 +137,7 @@ def dashboard(request):
 @login_required
 def view_day(request, date: str):
     """
-    View a specific day's overall score and recommendations.
-    This supports the demo feature: 'view previous days advice'.
+    I allow users to view a previous day's score and advice from history.
     """
     chosen_date = datetime.strptime(date, "%Y-%m-%d").date()
 

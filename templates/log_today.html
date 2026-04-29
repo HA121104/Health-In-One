@@ -1,13 +1,183 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="bg-white p-4 rounded shadow-sm">
-  <h2 class="h4 mb-3">Log Today's Metrics</h2>
-  <p class="text-muted">Saving this triggers my scoring pipeline automatically.</p>
+  <h2 class="h4 mb-3">Log Health Metrics</h2>
+  <p class="text-muted">
+    Use the sliders to record your daily health data. The selected value is shown beside each metric.
+  </p>
 
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-success">Save</button>
+
+    <div class="mb-3">
+      <label class="form-label">{{ form.date.label }}</label>
+      {{ form.date }}
+      {% if form.date.errors %}
+        <div class="text-danger">{{ form.date.errors }}</div>
+      {% endif %}
+    </div>
+
+    <hr>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Calories consumed:
+        <strong><span id="calories_kcal_value"></span> kcal</strong>
+      </label>
+      {{ form.calories_kcal }}
+      {% if form.calories_kcal.errors %}
+        <div class="text-danger">{{ form.calories_kcal.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Water intake:
+        <strong><span id="water_ml_value"></span> ml</strong>
+      </label>
+      {{ form.water_ml }}
+      {% if form.water_ml.errors %}
+        <div class="text-danger">{{ form.water_ml.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Sleep duration:
+        <strong><span id="sleep_hours_value"></span> hours</strong>
+      </label>
+      {{ form.sleep_hours }}
+      {% if form.sleep_hours.errors %}
+        <div class="text-danger">{{ form.sleep_hours.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Exercise duration:
+        <strong><span id="exercise_minutes_value"></span> minutes</strong>
+      </label>
+      {{ form.exercise_minutes }}
+      {% if form.exercise_minutes.errors %}
+        <div class="text-danger">{{ form.exercise_minutes.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Steps:
+        <strong><span id="steps_value"></span> steps</strong>
+      </label>
+      {{ form.steps }}
+      {% if form.steps.errors %}
+        <div class="text-danger">{{ form.steps.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Screen time:
+        <strong><span id="screen_time_hours_value"></span> hours</strong>
+      </label>
+      {{ form.screen_time_hours }}
+      {% if form.screen_time_hours.errors %}
+        <div class="text-danger">{{ form.screen_time_hours.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Stress level:
+        <strong><span id="stress_level_value"></span> / 10</strong>
+      </label>
+      {{ form.stress_level }}
+      {% if form.stress_level.errors %}
+        <div class="text-danger">{{ form.stress_level.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Mood level:
+        <strong><span id="mood_level_value"></span> / 10</strong>
+      </label>
+      {{ form.mood_level }}
+      {% if form.mood_level.errors %}
+        <div class="text-danger">{{ form.mood_level.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Energy level:
+        <strong><span id="energy_level_value"></span> / 10</strong>
+      </label>
+      {{ form.energy_level }}
+      {% if form.energy_level.errors %}
+        <div class="text-danger">{{ form.energy_level.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Fruit/vegetable servings:
+        <strong><span id="fruit_veg_servings_value"></span> servings</strong>
+      </label>
+      {{ form.fruit_veg_servings }}
+      {% if form.fruit_veg_servings.errors %}
+        <div class="text-danger">{{ form.fruit_veg_servings.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">
+        Protein intake:
+        <strong><span id="protein_grams_value"></span> g</strong>
+      </label>
+      {{ form.protein_grams }}
+      {% if form.protein_grams.errors %}
+        <div class="text-danger">{{ form.protein_grams.errors }}</div>
+      {% endif %}
+    </div>
+
+    <button class="btn btn-success">Save Metrics</button>
+    <a href="/dashboard/" class="btn btn-secondary">Cancel</a>
   </form>
 </div>
+
+<script>
+  /*
+    I use JavaScript here so each slider shows its selected value live.
+    This improves usability because the user can clearly see what number they are choosing.
+  */
+
+  const sliderFields = [
+    "calories_kcal",
+    "water_ml",
+    "sleep_hours",
+    "exercise_minutes",
+    "steps",
+    "screen_time_hours",
+    "stress_level",
+    "mood_level",
+    "energy_level",
+    "fruit_veg_servings",
+    "protein_grams"
+  ];
+
+  sliderFields.forEach((fieldName) => {
+    const input = document.getElementById("id_" + fieldName);
+    const output = document.getElementById(fieldName + "_value");
+
+    if (input && output) {
+      output.textContent = input.value;
+
+      input.addEventListener("input", () => {
+        output.textContent = input.value;
+      });
+    }
+  });
+</script>
+
 {% endblock %}
