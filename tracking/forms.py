@@ -7,7 +7,8 @@ from .models import Profile, DailyHealthEntry
 
 class SignUpForm(UserCreationForm):
     """
-    I use Django's built-in UserCreationForm because it handles secure password validation.
+    I use Django's built-in UserCreationForm because it handles secure password
+    validation and avoids me manually managing password hashing.
     """
 
     email = forms.EmailField(required=False)
@@ -19,8 +20,8 @@ class SignUpForm(UserCreationForm):
 
 class ProfileForm(forms.ModelForm):
     """
-    I use sliders and controlled fields so the profile page feels more user-friendly
-    and prevents unrealistic values.
+    I use controlled fields for the profile so users cannot enter unrealistic
+    values and so the ML model has reliable profile data to work with.
     """
 
     class Meta:
@@ -58,16 +59,19 @@ class ProfileForm(forms.ModelForm):
 
 class DailyHealthEntryForm(forms.ModelForm):
     """
-    This form lets users log daily health metrics.
+    I removed the date field from the public form because final users should only
+    log today's metrics.
 
-    I changed many inputs to slider-style widgets because the feedback suggested
-    the final version should be easier and friendlier for users.
+    I still keep the date in the model, but the view sets it automatically.
+    This prevents users from creating future entries or changing older results
+    through the normal UI.
     """
 
     class Meta:
         model = DailyHealthEntry
+
+        # I deliberately exclude "date" because the view will set it to today's date.
         fields = (
-            "date",
             "calories_kcal",
             "water_ml",
             "sleep_hours",
@@ -82,11 +86,6 @@ class DailyHealthEntryForm(forms.ModelForm):
         )
 
         widgets = {
-            "date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date",
-            }),
-
             "calories_kcal": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -94,7 +93,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "8000",
                 "step": "50",
             }),
-
             "water_ml": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -102,7 +100,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "8000",
                 "step": "100",
             }),
-
             "sleep_hours": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -110,7 +107,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "16",
                 "step": "0.5",
             }),
-
             "exercise_minutes": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -118,7 +114,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "300",
                 "step": "5",
             }),
-
             "steps": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -126,7 +121,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "60000",
                 "step": "500",
             }),
-
             "screen_time_hours": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -134,7 +128,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "24",
                 "step": "0.5",
             }),
-
             "stress_level": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -142,7 +135,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "10",
                 "step": "1",
             }),
-
             "mood_level": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -150,7 +142,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "10",
                 "step": "1",
             }),
-
             "energy_level": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -158,7 +149,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "10",
                 "step": "1",
             }),
-
             "fruit_veg_servings": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",
@@ -166,7 +156,6 @@ class DailyHealthEntryForm(forms.ModelForm):
                 "max": "15",
                 "step": "1",
             }),
-
             "protein_grams": forms.NumberInput(attrs={
                 "class": "form-range metric-slider",
                 "type": "range",

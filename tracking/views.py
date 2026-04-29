@@ -59,44 +59,45 @@ def profile_edit(request):
 @login_required
 def log_today(request):
     """
-    I keep date selection for now because it makes testing and generating history
-    easier. In a final deployed version, this could be restricted to today's date.
+    I lock the log page to today's date for the final version.
+
+    During the interim, I allowed manual date selection to create demo history.
+    For the final system, fixing the date to today improves data integrity and
+    prevents users from cheating by entering future or backdated scores.
     """
     today = timezone.localdate()
 
+    # I check if today's entry already exists so the user can update today's data
+    # without creating duplicate entries.
+    entry = DailyHealthEntry.objects.filter(
+        user=request.user,
+        date=today
+    ).first()
+
     if request.method == "POST":
-        form = DailyHealthEntryForm(request.POST)
+        form = DailyHealthEntryForm(request.POST, instance=entry)
+
         if form.is_valid():
             saved = form.save(commit=False)
             saved.user = request.user
 
-            existing = DailyHealthEntry.objects.filter(
-                user=request.user,
-                date=saved.date
-            ).first()
+            # I set the date in the view rather than trusting the user input.
+            # This ensures every normal log entry belongs to the real current day.
+            saved.date = today
 
-            if existing:
-                # I update every metric so editing a previous day refreshes both the score and ML advice.
-                existing.calories_kcal = saved.calories_kcal
-                existing.water_ml = saved.water_ml
-                existing.sleep_hours = saved.sleep_hours
-                existing.exercise_minutes = saved.exercise_minutes
-                existing.steps = saved.steps
-                existing.screen_time_hours = saved.screen_time_hours
-                existing.stress_level = saved.stress_level
-                existing.mood_level = saved.mood_level
-                existing.energy_level = saved.energy_level
-                existing.fruit_veg_servings = saved.fruit_veg_servings
-                existing.protein_grams = saved.protein_grams
-                existing.save()
-            else:
-                saved.save()
-
+            saved.save()
             return redirect("dashboard")
     else:
-        form = DailyHealthEntryForm(initial={"date": today})
+        form = DailyHealthEntryForm(instance=entry)
 
-    return render(request, "log_today.html", {"form": form})
+    return render(
+        request,
+        "log_today.html",
+        {
+            "form": form,
+            "today": today,
+        },
+    )
 
 
 def get_improvement_icon(metric_name):

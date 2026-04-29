@@ -6,10 +6,13 @@
     <div>
       <h2 class="h4 mb-1">
         <i class="bi bi-plus-circle-fill section-icon text-success"></i>
-        Log Health Metrics
+        Log Today's Health Metrics
       </h2>
       <p class="text-muted mb-0">
-        Use The Sliders To Record Your Daily Health Data. The Selected Values Update Live.
+        Today's Date: <strong>{{ today }}</strong>
+      </p>
+      <p class="text-muted mb-0">
+        Use The Sliders To Record Today's Health Data. The Selected Values Update Live.
       </p>
     </div>
 
@@ -22,23 +25,6 @@
 
 <form method="post">
   {% csrf_token %}
-
-  <div class="page-card p-4 mb-4">
-    <h3 class="h5 mb-3">
-      <i class="bi bi-calendar-event text-primary"></i>
-      Entry Date
-    </h3>
-
-    <!-- I keep the date selectable because it helps me generate test history for the final project demo. -->
-    <div class="mb-3">
-      <label class="form-label">{{ form.date.label }}</label>
-      {{ form.date }}
-
-      {% if form.date.errors %}
-        <div class="text-danger small mt-1">{{ form.date.errors }}</div>
-      {% endif %}
-    </div>
-  </div>
 
   <div class="page-card p-4 mb-4">
     <h3 class="h5 mb-3">
@@ -233,7 +219,7 @@
   <div class="d-flex gap-2">
     <button class="btn btn-success">
       <i class="bi bi-check-circle"></i>
-      Save Metrics
+      Save Today's Metrics
     </button>
 
     <a href="/dashboard/" class="btn btn-outline-secondary">
@@ -245,8 +231,8 @@
 <script>
   /*
     I use this JavaScript so each slider displays its current value live.
-    This makes the form much easier to use because users can see exactly what
-    number they are selecting instead of guessing from the slider position.
+    This makes the form easier to use because users can clearly see the number
+    they are selecting.
   */
   const sliderFields = [
     "calories_kcal",
