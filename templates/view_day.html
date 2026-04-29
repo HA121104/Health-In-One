@@ -1,24 +1,34 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="bg-white p-4 rounded shadow-sm mb-4">
+<div class="page-card p-4 mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
     <div>
       <p class="text-muted mb-1">Historical Result</p>
-      <h2 class="h4 mb-0">Score for {{ chosen_date }}</h2>
+      <h2 class="h4 mb-0">
+        <i class="bi bi-calendar-event section-icon text-primary"></i>
+        Score For {{ chosen_date }}
+      </h2>
     </div>
 
-    <a href="/history/" class="btn btn-outline-secondary btn-sm">Back to history</a>
+    <a href="/history/" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+      Back To History
+    </a>
   </div>
 </div>
 
 {% if score %}
   <div class="row g-3 mb-4">
     <div class="col-lg-4">
-      <div class="bg-white p-4 rounded shadow-sm h-100">
-        <h3 class="h5">Overall Score</h3>
+      <div class="page-card p-4 h-100">
+        <h3 class="h5">
+          <i class="bi bi-heart-pulse text-danger"></i>
+          Overall Score
+        </h3>
+
         <div class="display-3 fw-bold">{{ score.overall_score }}</div>
-        <p class="text-muted">out of 100</p>
+        <p class="text-muted">Out Of 100</p>
 
         <div class="progress" style="height: 12px;">
           <div
@@ -32,48 +42,67 @@
         </div>
 
         <hr>
-        <p class="mb-1"><strong>Recommendation source:</strong> {{ score.get_recommendation_source_display }}</p>
-        <p class="mb-0"><strong>Model version:</strong> {{ score.model_version }}</p>
+        <p class="mb-1">
+          <strong>Recommendation Source:</strong>
+          {{ score.get_recommendation_source_display }}
+        </p>
+        <p class="mb-0">
+          <strong>Model Version:</strong>
+          {{ score.model_version }}
+        </p>
       </div>
     </div>
 
     <div class="col-lg-8">
-      <div class="bg-white p-4 rounded shadow-sm h-100">
-        <h3 class="h5 mb-3">Logged Metrics</h3>
+      <div class="page-card p-4 h-100">
+        <h3 class="h5 mb-3">
+          <i class="bi bi-clipboard-data text-primary"></i>
+          Logged Metrics
+        </h3>
 
         {% if entry %}
           <div class="row g-2">
-            <div class="col-md-4"><strong>Calories:</strong> {{ entry.calories_kcal }} kcal</div>
-            <div class="col-md-4"><strong>Water:</strong> {{ entry.water_ml }} ml</div>
-            <div class="col-md-4"><strong>Sleep:</strong> {{ entry.sleep_hours }} hrs</div>
-            <div class="col-md-4"><strong>Exercise:</strong> {{ entry.exercise_minutes }} mins</div>
-            <div class="col-md-4"><strong>Steps:</strong> {{ entry.steps }}</div>
-            <div class="col-md-4"><strong>Screen time:</strong> {{ entry.screen_time_hours }} hrs</div>
-            <div class="col-md-4"><strong>Stress:</strong> {{ entry.stress_level }}/10</div>
-            <div class="col-md-4"><strong>Mood:</strong> {{ entry.mood_level }}/10</div>
-            <div class="col-md-4"><strong>Energy:</strong> {{ entry.energy_level }}/10</div>
-            <div class="col-md-4"><strong>Fruit/Veg:</strong> {{ entry.fruit_veg_servings }}</div>
-            <div class="col-md-4"><strong>Protein:</strong> {{ entry.protein_grams }} g</div>
+            <div class="col-md-4"><i class="bi bi-fire text-danger"></i> <strong>Calories:</strong> {{ entry.calories_kcal }} kcal</div>
+            <div class="col-md-4"><i class="bi bi-droplet-fill text-info"></i> <strong>Water:</strong> {{ entry.water_ml }} ml</div>
+            <div class="col-md-4"><i class="bi bi-moon-stars-fill text-primary"></i> <strong>Sleep:</strong> {{ entry.sleep_hours }} hrs</div>
+            <div class="col-md-4"><i class="bi bi-activity text-success"></i> <strong>Exercise:</strong> {{ entry.exercise_minutes }} mins</div>
+            <div class="col-md-4"><i class="bi bi-person-walking text-success"></i> <strong>Steps:</strong> {{ entry.steps }}</div>
+            <div class="col-md-4"><i class="bi bi-phone text-secondary"></i> <strong>Screen Time:</strong> {{ entry.screen_time_hours }} hrs</div>
+            <div class="col-md-4"><i class="bi bi-exclamation-triangle-fill text-warning"></i> <strong>Stress:</strong> {{ entry.stress_level }}/10</div>
+            <div class="col-md-4"><i class="bi bi-emoji-smile-fill text-warning"></i> <strong>Mood:</strong> {{ entry.mood_level }}/10</div>
+            <div class="col-md-4"><i class="bi bi-lightning-charge-fill text-warning"></i> <strong>Energy:</strong> {{ entry.energy_level }}/10</div>
+            <div class="col-md-4"><i class="bi bi-basket-fill text-success"></i> <strong>Fruit/Veg:</strong> {{ entry.fruit_veg_servings }}</div>
+            <div class="col-md-4"><i class="bi bi-egg-fried text-warning"></i> <strong>Protein:</strong> {{ entry.protein_grams }} g</div>
           </div>
         {% else %}
-          <p class="text-muted">No raw entry found for this day.</p>
+          <p class="text-muted">No Raw Entry Found For This Day.</p>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <div class="bg-white p-4 rounded shadow-sm mb-4">
-    <h3 class="h5 mb-3">Recommendations</h3>
+  <div class="page-card p-4 mb-4">
+    <h3 class="h5 mb-3">
+      <i class="bi bi-cpu-fill text-success"></i>
+      Recommendations
+    </h3>
 
     {% for msg in score.advice %}
       {% if "Top focus today:" in msg %}
-        <div class="alert alert-info">{{ msg }}</div>
+        <div class="alert alert-info">
+          <i class="bi bi-bullseye"></i>
+          {{ msg }}
+        </div>
       {% elif msg|slice:":18" == "ML recommendation:" %}
         <div class="border rounded p-3 mb-2">
+          <i class="bi bi-stars text-warning"></i>
           <strong>{{ msg }}</strong>
         </div>
       {% elif msg|slice:":4" == "Tip:" %}
-        <p class="mb-2"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
+        <p class="mb-2">
+          <i class="bi bi-lightbulb text-warning"></i>
+          <strong>Tip:</strong>{{ msg|slice:"4:" }}
+        </p>
       {% else %}
         <p class="mb-2">{{ msg }}</p>
       {% endif %}
@@ -81,16 +110,29 @@
   </div>
 
   {% if improvements %}
-    <div class="bg-white p-4 rounded shadow-sm">
-      <h3 class="h5 mb-3">ML Predicted Improvements</h3>
+    <div class="page-card p-4">
+      <h3 class="h5 mb-3">
+        <i class="bi bi-arrow-up-circle text-success"></i>
+        ML Predicted Improvements
+      </h3>
 
       <div class="row g-3">
         {% for item in improvements %}
           <div class="col-md-4">
-            <div class="border rounded p-3 h-100">
-              <h4 class="h6">{{ item.metric }}</h4>
-              <p class="mb-1">{{ item.action }}</p>
-              <p class="mb-1"><strong>Predicted gain:</strong> +{{ item.predicted_gain }} points</p>
+            <div class="border rounded p-3 h-100 shadow-sm">
+              <h4 class="h6 d-flex align-items-center mb-3">
+                <!-- I use the same icon mapping here so historical ML improvements match the dashboard style. -->
+                <i class="bi {{ item.icon_class }} me-2 fs-5"></i>
+                {{ item.metric }}
+              </h4>
+
+              <p class="mb-2">{{ item.action }}</p>
+
+              <p class="mb-2">
+                <strong>Predicted Gain:</strong>
+                +{{ item.predicted_gain }} Points
+              </p>
+
               <p class="text-muted small mb-0">
                 {{ item.current_predicted_score }} → {{ item.predicted_score_after_change }}
               </p>
@@ -102,8 +144,8 @@
   {% endif %}
 
 {% else %}
-  <div class="bg-white p-4 rounded shadow-sm">
-    <p class="text-muted mb-0">No saved score for this day.</p>
+  <div class="page-card p-4">
+    <p class="text-muted mb-0">No Saved Score For This Day.</p>
   </div>
 {% endif %}
 

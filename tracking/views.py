@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.utils import timezone
@@ -60,7 +60,7 @@ def profile_edit(request):
 def log_today(request):
     """
     I keep date selection for now because it makes testing and generating history
-    easier. In the final deployed version, this can be restricted to today's date.
+    easier. In a final deployed version, this could be restricted to today's date.
     """
     today = timezone.localdate()
 
@@ -99,16 +99,68 @@ def log_today(request):
     return render(request, "log_today.html", {"form": form})
 
 
+def get_improvement_icon(metric_name):
+    """
+    I use this helper so each predicted improvement card has an icon that matches
+    the health metric it refers to. This makes the UI easier to scan visually.
+    """
+    metric_name = str(metric_name).lower()
+
+    if "water" in metric_name:
+        return "bi-droplet-fill text-info"
+
+    if "sleep" in metric_name:
+        return "bi-moon-stars-fill text-primary"
+
+    if "calorie" in metric_name:
+        return "bi-fire text-danger"
+
+    if "exercise" in metric_name:
+        return "bi-activity text-success"
+
+    if "step" in metric_name:
+        return "bi-person-walking text-success"
+
+    if "screen" in metric_name:
+        return "bi-phone text-secondary"
+
+    if "stress" in metric_name:
+        return "bi-exclamation-triangle-fill text-warning"
+
+    if "mood" in metric_name:
+        return "bi-emoji-smile-fill text-warning"
+
+    if "energy" in metric_name:
+        return "bi-lightning-charge-fill text-warning"
+
+    if "fruit" in metric_name or "vegetable" in metric_name:
+        return "bi-basket-fill text-success"
+
+    if "protein" in metric_name:
+        return "bi-egg-fried text-warning"
+
+    # I keep a default icon so new future metrics still display neatly.
+    return "bi-arrow-up-circle-fill text-success"
+
+
 def sort_predicted_improvements(predicted_improvements):
     """
     I sort predicted improvements by predicted gain so the most useful ML advice
     appears first on the dashboard.
+
+    I also attach an icon class here so the HTML template does not need to contain
+    complicated logic for choosing icons.
     """
     if not predicted_improvements:
         return []
 
+    items = list(predicted_improvements.values())
+
+    for item in items:
+        item["icon_class"] = get_improvement_icon(item.get("metric", ""))
+
     return sorted(
-        predicted_improvements.values(),
+        items,
         key=lambda item: item.get("predicted_gain", 0),
         reverse=True,
     )

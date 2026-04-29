@@ -111,6 +111,8 @@ STATICFILES_DIRS = [BASE_DIR / "healthinone"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# I set these so after login/logout users land on the right pages automatically.
+# I send users back to the home page after logout so the app has a clear logout destination.
+LOGOUT_REDIRECT_URL = "/"
+
+# I send users to the dashboard after login because that is the main page of the application.
 LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"

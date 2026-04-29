@@ -5,29 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Health In One</title>
 
+  <!-- I use Bootstrap because it gives the project a clean responsive layout quickly. -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- I use Bootstrap Icons because they fit naturally with Bootstrap and make the UI clearer. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+  <style>
+    /* I keep small custom styling here so the interface feels more finished without needing a full CSS file yet. */
+    body {
+      background: #f5f7fb;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .page-card {
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .section-icon {
+      font-size: 1.2rem;
+      margin-right: 0.4rem;
+    }
+
+    .metric-icon {
+      font-size: 1.4rem;
+      margin-right: 0.5rem;
+    }
+
+    .nav-icon {
+      margin-right: 0.25rem;
+    }
+
+    .logout-form {
+      display: inline;
+    }
+  </style>
 </head>
 
-<body class="bg-light">
+<body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-      <a class="navbar-brand" href="/">HealthInOne</a>
+      <a class="navbar-brand" href="/">
+        <i class="bi bi-heart-pulse-fill text-danger"></i>
+        Health In One
+      </a>
 
       <div class="d-flex gap-2 flex-wrap">
         {% if user.is_authenticated %}
-          <a class="btn btn-outline-light btn-sm" href="/dashboard/">Dashboard</a>
-          <a class="btn btn-outline-light btn-sm" href="/log/">Log Metrics</a>
-          <a class="btn btn-outline-light btn-sm" href="/history/">History</a>
-          <a class="btn btn-outline-light btn-sm" href="/profile/">Profile</a>
-          <a class="btn btn-outline-light btn-sm" href="/social/leaderboard/">Leaderboard</a>
-          <a class="btn btn-warning btn-sm" href="/accounts/logout/">Logout</a>
+          <a class="btn btn-outline-light btn-sm" href="/dashboard/">
+            <i class="bi bi-speedometer2 nav-icon"></i>Dashboard
+          </a>
+
+          <a class="btn btn-outline-light btn-sm" href="/log/">
+            <i class="bi bi-plus-circle nav-icon"></i>Log Metrics
+          </a>
+
+          <a class="btn btn-outline-light btn-sm" href="/history/">
+            <i class="bi bi-clock-history nav-icon"></i>History
+          </a>
+
+          <a class="btn btn-outline-light btn-sm" href="/profile/">
+            <i class="bi bi-person-circle nav-icon"></i>Profile
+          </a>
+
+          <a class="btn btn-outline-light btn-sm" href="/social/friends/">
+            <i class="bi bi-people nav-icon"></i>Friends
+          </a>
+
+          <a class="btn btn-outline-light btn-sm" href="/social/leaderboard/">
+            <i class="bi bi-trophy nav-icon"></i>Leaderboard
+          </a>
+
+          <!-- I use a POST form for logout because modern Django expects logout to be done safely with CSRF protection. -->
+          <form class="logout-form" method="post" action="/accounts/logout/">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning btn-sm">
+              <i class="bi bi-box-arrow-right nav-icon"></i>Logout
+            </button>
+          </form>
         {% else %}
-          <a class="btn btn-outline-light btn-sm" href="/accounts/login/">Login</a>
-          <a class="btn btn-success btn-sm" href="/signup/">Sign up</a>
+          <a class="btn btn-outline-light btn-sm" href="/accounts/login/">
+            <i class="bi bi-box-arrow-in-right nav-icon"></i>Login
+          </a>
+
+          <a class="btn btn-success btn-sm" href="/signup/">
+            <i class="bi bi-person-plus nav-icon"></i>Sign Up
+          </a>
         {% endif %}
       </div>
     </div>
   </nav>
+
+  {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} shadow-sm mb-2">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
 
   <main class="container my-4">
     {% block content %}{% endblock %}

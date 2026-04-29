@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-card p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="h4 mb-1">
+        <i class="bi bi-people-fill section-icon text-primary"></i>
+        Friends
+      </h2>
+      <p class="text-muted mb-0">
+        Search for users, send friend requests, and manage who appears on your leaderboard.
+      </p>
+    </div>
+
+    <a href="/social/leaderboard/" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-trophy"></i>
+      View Leaderboard
+    </a>
+  </div>
+</div>
+
+<div class="page-card p-4 mb-4">
+  <h3 class="h5 mb-3">
+    <i class="bi bi-search text-primary"></i>
+    Find Users
+  </h3>
+
+  <form method="get" class="d-flex gap-2">
+    <input
+      type="text"
+      name="q"
+      class="form-control"
+      value="{{ query }}"
+      placeholder="Search by username or email">
+
+    <button class="btn btn-primary">
+      <i class="bi bi-search"></i>
+      Search
+    </button>
+  </form>
+
+  {% if query %}
+    <hr>
+
+    {% if search_results %}
+      <div class="list-group">
+        {% for result in search_results %}
+          <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <strong>
+                <i class="bi bi-person-circle"></i>
+                {{ result.user.username }}
+              </strong>
+              <div class="text-muted small">{{ result.status_text }}</div>
+            </div>
+
+            {% if result.can_send %}
+              <form method="post" action="/social/friends/send/{{ result.user.id }}/">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-success">
+                  <i class="bi bi-person-plus"></i>
+                  Add Friend
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No users found.</p>
+    {% endif %}
+  {% endif %}
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="page-card p-4 h-100">
+      <h3 class="h5 mb-3">
+        <i class="bi bi-inbox-fill text-warning"></i>
+        Friend Requests Received
+      </h3>
+
+      {% if pending_received %}
+        <div class="list-group">
+          {% for request_item in pending_received %}
+            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <strong>{{ request_item.requester.username }}</strong>
+                <div class="text-muted small">Wants to add you as a friend.</div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <form method="post" action="/social/friends/accept/{{ request_item.id }}/">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-success">
+                    <i class="bi bi-check-circle"></i>
+                    Accept
+                  </button>
+                </form>
+
+                <form method="post" action="/social/friends/decline/{{ request_item.id }}/">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-x-circle"></i>
+                    Decline
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No pending received requests.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="page-card p-4 h-100">
+      <h3 class="h5 mb-3">
+        <i class="bi bi-send-fill text-primary"></i>
+        Friend Requests Sent
+      </h3>
+
+      {% if pending_sent %}
+        <div class="list-group">
+          {% for request_item in pending_sent %}
+            <div class="list-group-item">
+              <strong>{{ request_item.addressee.username }}</strong>
+              <div class="text-muted small">Waiting for response.</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No sent requests waiting for a response.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="page-card p-4 mt-4">
+  <h3 class="h5 mb-3">
+    <i class="bi bi-person-heart text-danger"></i>
+    Your Friends
+  </h3>
+
+  {% if friends_list %}
+    <div class="list-group">
+      {% for friend in friends_list %}
+        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>
+              <i class="bi bi-person-check-fill text-success"></i>
+              {{ friend.user.username }}
+            </strong>
+          </div>
+
+          <form method="post" action="/social/friends/remove/{{ friend.friendship.id }}/">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-trash"></i>
+              Remove
+            </button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">
+      You have not added any friends yet. Search for a user above to send a request.
+    </p>
+  {% endif %}
+</div>
+
+{% endblock %}
