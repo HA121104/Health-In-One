@@ -1,13 +1,162 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white p-4 rounded shadow-sm">
-  <h2 class="h4 mb-3">Your Profile</h2>
-  <p class="text-muted">I use this to personalise targets (e.g., exercise and calories).</p>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn btn-primary">Save</button>
-  </form>
+<div class="page-card p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h2 class="h4 mb-1">
+        <i class="bi bi-person-circle section-icon text-primary"></i>
+        Profile
+      </h2>
+      <p class="text-muted mb-0">
+        These Details Help Personalise Scoring Targets And ML Recommendations.
+      </p>
+    </div>
+
+    <a href="/dashboard/" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+      Back To Dashboard
+    </a>
+  </div>
 </div>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="page-card p-4 mb-4">
+    <h3 class="h5 mb-3">
+      <i class="bi bi-person-vcard text-primary"></i>
+      Personal Details
+    </h3>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">
+          <i class="bi bi-calendar2-heart text-primary"></i>
+          Age
+        </label>
+        {{ form.age }}
+        {% if form.age.errors %}
+          <div class="text-danger small mt-1">{{ form.age.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">
+          <i class="bi bi-rulers text-secondary"></i>
+          Height (cm)
+        </label>
+        {{ form.height_cm }}
+        {% if form.height_cm.errors %}
+          <div class="text-danger small mt-1">{{ form.height_cm.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">
+          <i class="bi bi-speedometer text-success"></i>
+          Weight (kg)
+        </label>
+        {{ form.weight_kg }}
+        {% if form.weight_kg.errors %}
+          <div class="text-danger small mt-1">{{ form.weight_kg.errors }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="page-card p-4 mb-4">
+    <h3 class="h5 mb-3">
+      <i class="bi bi-sliders text-success"></i>
+      Personalisation Settings
+    </h3>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">
+          <i class="bi bi-activity text-success"></i>
+          Activity Level
+        </label>
+        {{ form.activity_level }}
+        {% if form.activity_level.errors %}
+          <div class="text-danger small mt-1">{{ form.activity_level.errors }}</div>
+        {% endif %}
+        <div class="form-text">
+          I use this to adjust exercise and step targets.
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">
+          <i class="bi bi-bullseye text-danger"></i>
+          Health Goal
+        </label>
+        {{ form.health_goal }}
+        {% if form.health_goal.errors %}
+          <div class="text-danger small mt-1">{{ form.health_goal.errors }}</div>
+        {% endif %}
+        <div class="form-text">
+          I use this to personalise calorie targets and ML advice.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-card p-4 mb-4">
+    <h3 class="h5 mb-3">
+      <i class="bi bi-cpu-fill text-success"></i>
+      How This Profile Is Used
+    </h3>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="border rounded p-3 h-100">
+          <h4 class="h6">
+            <i class="bi bi-fire text-danger"></i>
+            Calorie Targets
+          </h4>
+          <p class="text-muted mb-0">
+            Weight And Health Goal Help Adjust The Calorie Range.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="border rounded p-3 h-100">
+          <h4 class="h6">
+            <i class="bi bi-person-walking text-success"></i>
+            Activity Targets
+          </h4>
+          <p class="text-muted mb-0">
+            Activity Level Helps Adjust Step And Exercise Expectations.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="border rounded p-3 h-100">
+          <h4 class="h6">
+            <i class="bi bi-stars text-warning"></i>
+            ML Recommendations
+          </h4>
+          <p class="text-muted mb-0">
+            Profile Data Is Included As Input Features For The ML Model.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary">
+      <i class="bi bi-check-circle"></i>
+      Save Profile
+    </button>
+
+    <a href="/dashboard/" class="btn btn-outline-secondary">
+      Cancel
+    </a>
+  </div>
+</form>
+
 {% endblock %}
