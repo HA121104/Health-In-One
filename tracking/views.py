@@ -11,7 +11,8 @@ from .models import Profile, DailyHealthEntry, DailyScore
 
 def home(request):
     """
-    I redirect logged-in users straight to the dashboard so the app feels quicker to use.
+    I redirect logged-in users straight to the dashboard because the dashboard is
+    the main page of the finished application.
     """
     if request.user.is_authenticated:
         return redirect("dashboard")
@@ -20,7 +21,8 @@ def home(request):
 
 def signup(request):
     """
-    I use Django's built-in signup form because it handles secure user creation.
+    I use Django's built-in signup form because it gives secure user creation
+    without me having to write password handling manually.
     """
     if request.method == "POST":
         form = SignUpForm(request.POST)
@@ -38,8 +40,8 @@ def signup(request):
 @login_required
 def profile_edit(request):
     """
-    I allow users to update profile data because the final ML model needs user context
-    such as age, height, weight, activity level and health goal.
+    I let the user update profile details because these values are used by the
+    scoring engine and the ML recommendation model.
     """
     profile, _ = Profile.objects.get_or_create(user=request.user)
 
@@ -57,8 +59,8 @@ def profile_edit(request):
 @login_required
 def log_today(request):
     """
-    I allow date selection for development/testing so I can quickly generate history.
-    For the final deployed version, this can be locked to today's date if needed.
+    I keep date selection for now because it makes testing and generating history
+    easier. In the final deployed version, this can be restricted to today's date.
     """
     today = timezone.localdate()
 
@@ -74,7 +76,7 @@ def log_today(request):
             ).first()
 
             if existing:
-                # I update every metric so re-saving a day correctly refreshes the score and ML advice.
+                # I update every metric so editing a previous day refreshes both the score and ML advice.
                 existing.calories_kcal = saved.calories_kcal
                 existing.water_ml = saved.water_ml
                 existing.sleep_hours = saved.sleep_hours
@@ -97,11 +99,26 @@ def log_today(request):
     return render(request, "log_today.html", {"form": form})
 
 
+def sort_predicted_improvements(predicted_improvements):
+    """
+    I sort predicted improvements by predicted gain so the most useful ML advice
+    appears first on the dashboard.
+    """
+    if not predicted_improvements:
+        return []
+
+    return sorted(
+        predicted_improvements.values(),
+        key=lambda item: item.get("predicted_gain", 0),
+        reverse=True,
+    )
+
+
 @login_required
 def dashboard(request):
     """
-    The dashboard shows today's score, ML recommendations and a quick recent chart.
-    The full long-term history is now handled by the separate history page.
+    The dashboard shows the user's current daily score, ML-led recommendations,
+    and a quick recent progress chart.
     """
     today = timezone.localdate()
 
@@ -121,11 +138,16 @@ def dashboard(request):
     if not has_entry_today and not has_score_today:
         reminder = "Reminder: you haven't logged today's health metrics yet."
 
+    today_improvements = []
+    if score_today:
+        today_improvements = sort_predicted_improvements(score_today.predicted_improvements)
+
     return render(
         request,
         "dashboard.html",
         {
             "score_today": score_today,
+            "today_improvements": today_improvements,
             "chart_labels": chart_labels,
             "chart_values": chart_values,
             "chart_dates": chart_dates,
@@ -137,10 +159,8 @@ def dashboard(request):
 @login_required
 def history(request):
     """
-    I added this page because the final feedback asked for more complete history,
-    not just a short recent chart.
-
-    The user can choose 7 days, 30 days, 90 days, or all saved results.
+    I added this page because the final version needs longer-term history, not
+    only a short recent dashboard chart.
     """
     today = timezone.localdate()
     selected_range = request.GET.get("range", "30")
@@ -150,8 +170,6 @@ def history(request):
     if selected_range in ["7", "30", "90"]:
         days = int(selected_range)
         start_date = today - timedelta(days=days - 1)
-
-        # I filter by date range so the page can show meaningful long-term history periods.
         scores = scores.filter(date__gte=start_date, date__lte=today)
 
     scores = list(scores)
@@ -190,12 +208,17 @@ def history(request):
 @login_required
 def view_day(request, date: str):
     """
-    I allow users to view a specific day's score and recommendations from history.
+    I let users open a specific historical day so they can review both the score
+    and the recommendations that were generated for that date.
     """
     chosen_date = datetime.strptime(date, "%Y-%m-%d").date()
 
     score = DailyScore.objects.filter(user=request.user, date=chosen_date).first()
     entry = DailyHealthEntry.objects.filter(user=request.user, date=chosen_date).first()
+
+    improvements = []
+    if score:
+        improvements = sort_predicted_improvements(score.predicted_improvements)
 
     return render(
         request,
@@ -203,6 +226,7 @@ def view_day(request, date: str):
         {
             "score": score,
             "entry": entry,
+            "improvements": improvements,
             "chosen_date": chosen_date,
         },
     )

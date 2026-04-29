@@ -1,46 +1,110 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="bg-white p-4 rounded shadow-sm">
-  <h2 class="h5">Score for {{ chosen_date }}</h2>
 
-  {% if score %}
-    <div class="display-4 mb-3">{{ score.overall_score }}</div>
+<div class="bg-white p-4 rounded shadow-sm mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <p class="text-muted mb-1">Historical Result</p>
+      <h2 class="h4 mb-0">Score for {{ chosen_date }}</h2>
+    </div>
 
-    <h3 class="h6">Recommendations</h3>
+    <a href="/history/" class="btn btn-outline-secondary btn-sm">Back to history</a>
+  </div>
+</div>
+
+{% if score %}
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4">
+      <div class="bg-white p-4 rounded shadow-sm h-100">
+        <h3 class="h5">Overall Score</h3>
+        <div class="display-3 fw-bold">{{ score.overall_score }}</div>
+        <p class="text-muted">out of 100</p>
+
+        <div class="progress" style="height: 12px;">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            style="width: {{ score.overall_score }}%;"
+            aria-valuenow="{{ score.overall_score }}"
+            aria-valuemin="0"
+            aria-valuemax="100">
+          </div>
+        </div>
+
+        <hr>
+        <p class="mb-1"><strong>Recommendation source:</strong> {{ score.get_recommendation_source_display }}</p>
+        <p class="mb-0"><strong>Model version:</strong> {{ score.model_version }}</p>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="bg-white p-4 rounded shadow-sm h-100">
+        <h3 class="h5 mb-3">Logged Metrics</h3>
+
+        {% if entry %}
+          <div class="row g-2">
+            <div class="col-md-4"><strong>Calories:</strong> {{ entry.calories_kcal }} kcal</div>
+            <div class="col-md-4"><strong>Water:</strong> {{ entry.water_ml }} ml</div>
+            <div class="col-md-4"><strong>Sleep:</strong> {{ entry.sleep_hours }} hrs</div>
+            <div class="col-md-4"><strong>Exercise:</strong> {{ entry.exercise_minutes }} mins</div>
+            <div class="col-md-4"><strong>Steps:</strong> {{ entry.steps }}</div>
+            <div class="col-md-4"><strong>Screen time:</strong> {{ entry.screen_time_hours }} hrs</div>
+            <div class="col-md-4"><strong>Stress:</strong> {{ entry.stress_level }}/10</div>
+            <div class="col-md-4"><strong>Mood:</strong> {{ entry.mood_level }}/10</div>
+            <div class="col-md-4"><strong>Energy:</strong> {{ entry.energy_level }}/10</div>
+            <div class="col-md-4"><strong>Fruit/Veg:</strong> {{ entry.fruit_veg_servings }}</div>
+            <div class="col-md-4"><strong>Protein:</strong> {{ entry.protein_grams }} g</div>
+          </div>
+        {% else %}
+          <p class="text-muted">No raw entry found for this day.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white p-4 rounded shadow-sm mb-4">
+    <h3 class="h5 mb-3">Recommendations</h3>
 
     {% for msg in score.advice %}
       {% if "Top focus today:" in msg %}
-        <div class="alert alert-info mb-2">{{ msg }}</div>
-
-      {% elif msg|slice:":6" == "Water " %}
-        <h4 class="h6 mt-3 mb-1">Water</h4>
-        <p class="mb-1">{{ msg }}</p>
-
-      {% elif msg|slice:":6" == "Sleep " %}
-        <h4 class="h6 mt-3 mb-1">Sleep</h4>
-        <p class="mb-1">{{ msg }}</p>
-
-      {% elif msg|slice:":9" == "Exercise " %}
-        <h4 class="h6 mt-3 mb-1">Exercise</h4>
-        <p class="mb-1">{{ msg }}</p>
-
-      {% elif msg|slice:":9" == "Calories " %}
-        <h4 class="h6 mt-3 mb-1">Calories</h4>
-        <p class="mb-1">{{ msg }}</p>
-
+        <div class="alert alert-info">{{ msg }}</div>
+      {% elif msg|slice:":18" == "ML recommendation:" %}
+        <div class="border rounded p-3 mb-2">
+          <strong>{{ msg }}</strong>
+        </div>
+      {% elif msg|slice:":4" == "Tip:" %}
+        <p class="mb-2"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
       {% else %}
-        {% if msg|slice:":4" == "Tip:" %}
-          <p class="mb-1"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
-        {% else %}
-          <p class="mb-1">{{ msg }}</p>
-        {% endif %}
+        <p class="mb-2">{{ msg }}</p>
       {% endif %}
     {% endfor %}
+  </div>
 
-  {% else %}
-    <p class="text-muted">No saved score for this day.</p>
+  {% if improvements %}
+    <div class="bg-white p-4 rounded shadow-sm">
+      <h3 class="h5 mb-3">ML Predicted Improvements</h3>
+
+      <div class="row g-3">
+        {% for item in improvements %}
+          <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+              <h4 class="h6">{{ item.metric }}</h4>
+              <p class="mb-1">{{ item.action }}</p>
+              <p class="mb-1"><strong>Predicted gain:</strong> +{{ item.predicted_gain }} points</p>
+              <p class="text-muted small mb-0">
+                {{ item.current_predicted_score }} → {{ item.predicted_score_after_change }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
   {% endif %}
 
-  <a href="/dashboard/" class="btn btn-secondary mt-3">Back to dashboard</a>
-</div>
+{% else %}
+  <div class="bg-white p-4 rounded shadow-sm">
+    <p class="text-muted mb-0">No saved score for this day.</p>
+  </div>
+{% endif %}
+
 {% endblock %}

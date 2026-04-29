@@ -1,69 +1,123 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="row g-3">
   <div class="col-12">
     {% if reminder %}
-      <div class="alert alert-warning">{{ reminder }}</div>
+      <div class="alert alert-warning shadow-sm">{{ reminder }}</div>
     {% endif %}
   </div>
 
-  <div class="col-md-4">
-    <div class="bg-white p-4 rounded shadow-sm">
-      <h2 class="h5">Today's Score</h2>
+  <div class="col-lg-4">
+    <div class="bg-white p-4 rounded shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <p class="text-muted mb-1">Today</p>
+          <h2 class="h4 mb-0">Health Score</h2>
+        </div>
+
+        {% if score_today %}
+          <span class="badge {% if score_today.recommendation_source == 'ML_MODEL' %}bg-success{% else %}bg-secondary{% endif %}">
+            {{ score_today.get_recommendation_source_display }}
+          </span>
+        {% endif %}
+      </div>
 
       {% if score_today %}
-        <div class="display-4">{{ score_today.overall_score }}</div>
-        <hr/>
+        <div class="text-center my-4">
+          <div class="display-2 fw-bold">{{ score_today.overall_score }}</div>
+          <p class="text-muted mb-2">out of 100</p>
 
-        <h3 class="h6">Recommendations</h3>
+          <div class="progress" style="height: 12px;">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              style="width: {{ score_today.overall_score }}%;"
+              aria-valuenow="{{ score_today.overall_score }}"
+              aria-valuemin="0"
+              aria-valuemax="100">
+            </div>
+          </div>
+        </div>
 
-        {% for msg in score_today.advice %}
-          {% if "Top focus today:" in msg %}
-            <div class="alert alert-info mb-2">{{ msg }}</div>
-
-          {% elif msg|slice:":6" == "Water " %}
-            <h4 class="h6 mt-3 mb-1">Water</h4>
-            <p class="mb-1">{{ msg }}</p>
-
-          {% elif msg|slice:":6" == "Sleep " %}
-            <h4 class="h6 mt-3 mb-1">Sleep</h4>
-            <p class="mb-1">{{ msg }}</p>
-
-          {% elif msg|slice:":9" == "Exercise " %}
-            <h4 class="h6 mt-3 mb-1">Exercise</h4>
-            <p class="mb-1">{{ msg }}</p>
-
-          {% elif msg|slice:":9" == "Calories " %}
-            <h4 class="h6 mt-3 mb-1">Calories</h4>
-            <p class="mb-1">{{ msg }}</p>
-
-          {% else %}
-            {% if msg|slice:":4" == "Tip:" %}
-              <p class="mb-1"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
-            {% else %}
-              <p class="mb-1">{{ msg }}</p>
-            {% endif %}
-          {% endif %}
-        {% endfor %}
-
+        <p class="small text-muted mb-0">
+          Model version: {{ score_today.model_version }}
+        </p>
       {% else %}
-        <p class="text-muted">No score yet. Log today’s metrics to generate one.</p>
+        <p class="text-muted mt-3">No score yet. Log today’s metrics to generate one.</p>
         <a class="btn btn-success" href="/log/">Log today</a>
       {% endif %}
     </div>
   </div>
 
-  <div class="col-md-8">
-    <div class="bg-white p-4 rounded shadow-sm">
-      <h2 class="h5">Last 7 Days (click a point)</h2>
-      <canvas id="scoreChart"></canvas>
-      <p class="text-muted mt-2 mb-0">Tip: click a point on the line to view that day’s score and advice.</p>
+  <div class="col-lg-8">
+    <div class="bg-white p-4 rounded shadow-sm h-100">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h2 class="h5 mb-1">Recent Progress</h2>
+          <p class="text-muted mb-0">Click a point to view that day's recommendations.</p>
+        </div>
+        <a href="/history/" class="btn btn-outline-primary btn-sm">View full history</a>
+      </div>
+
+      <canvas id="scoreChart" class="mt-3"></canvas>
     </div>
   </div>
 </div>
 
+{% if score_today %}
+  <div class="bg-white p-4 rounded shadow-sm mt-4">
+    <h3 class="h5 mb-3">ML-Led Recommendations</h3>
+
+    {% for msg in score_today.advice %}
+      {% if "Top focus today:" in msg %}
+        <div class="alert alert-info">{{ msg }}</div>
+      {% elif msg|slice:":18" == "ML recommendation:" %}
+        <div class="border rounded p-3 mb-2">
+          <strong>{{ msg }}</strong>
+        </div>
+      {% elif msg|slice:":4" == "Tip:" %}
+        <p class="mb-2"><strong>Tip:</strong>{{ msg|slice:"4:" }}</p>
+      {% else %}
+        <p class="mb-2">{{ msg }}</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if today_improvements %}
+    <div class="bg-white p-4 rounded shadow-sm mt-4">
+      <h3 class="h5 mb-3">Predicted Score Improvements</h3>
+      <p class="text-muted">
+        These are the improvements tested by the ML model. The highest predicted gains are shown first.
+      </p>
+
+      <div class="row g-3">
+        {% for item in today_improvements %}
+          <div class="col-md-4">
+            <div class="border rounded p-3 h-100">
+              <h4 class="h6">{{ item.metric }}</h4>
+              <p class="mb-1">{{ item.action }}</p>
+              <p class="mb-1">
+                <strong>Predicted gain:</strong>
+                +{{ item.predicted_gain }} points
+              </p>
+              <p class="text-muted small mb-0">
+                {{ item.current_predicted_score }} → {{ item.predicted_score_after_change }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+  /*
+    I keep this chart clickable so the dashboard connects directly to the
+    historical advice pages.
+  */
   const labels = {{ chart_labels|safe }};
   const values = {{ chart_values|safe }};
   const dates = {{ chart_dates|safe }};
@@ -82,8 +136,15 @@
           const date = dates[index];
           window.location.href = `/day/${date}/`;
         }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100
+        }
       }
     }
   });
 </script>
+
 {% endblock %}
